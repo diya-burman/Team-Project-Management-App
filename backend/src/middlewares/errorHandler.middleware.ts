@@ -1,4 +1,4 @@
-import { ErrorRequestHandler, Response } from "express"
+import { ErrorRequestHandler, Response } from "express";
 import { HTTPSTATUS } from "../config/http.config";
 import { AppError } from "../utils/appError";
 import { z, ZodError } from "zod";

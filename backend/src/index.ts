@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
-import session from "cookie-session";
+import session from "express-session";
 import { config } from "./config/app.config";
 import connectDatabase from "./config/database.config";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
@@ -13,6 +13,8 @@ import { ErrorCodeEnum } from "./enums/error-code.enum";
 import "./config/passport.config"; 
 import passport from "passport";
 import authRoutes from "./routes/auth.route";
+import userRoutes from "./routes/user.route";
+import isAuthenticated from "./middlewares/isAuthenticated.middleware";
 
 
 const app = express();
@@ -23,15 +25,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
-    session({
-      name: "session",
-      keys: [config.SESSION_SECRET],
-      maxAge: 24 * 60 * 60 * 1000,
+  session({
+    name: "session",
+    secret: config.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
       secure: config.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "lax",
-    })
+    },
+  })
 );
+
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -54,6 +61,7 @@ app.get(
 );
 
 app.use(`${BASE_PATH}/auth`, authRoutes);
+app.use(`${BASE_PATH}/user`, isAuthenticated, userRoutes);
 
 
 app.use(errorHandler);
